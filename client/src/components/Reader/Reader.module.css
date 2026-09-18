@@ -1,0 +1,219 @@
+.root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+}
+
+/* Fixed full-width band — never moves, text scrolls through it */
+.band {
+  position: fixed;
+  left: 0;
+  right: 0;
+  z-index: 1;
+  pointer-events: none;
+  /* Soft edges so the band blends rather than hard-cuts */
+  box-shadow: 0 0 40px 20px var(--band-glow, transparent);
+}
+
+.topBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1.5rem;
+  border-bottom: 1px solid;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  backdrop-filter: blur(8px);
+  background: inherit;
+}
+
+.backBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 0.45rem 0.75rem;
+  border-radius: 8px;
+  transition: opacity 0.15s;
+}
+.backBtn:hover { opacity: 0.65; }
+
+.settingsBtn {
+  border: none;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 700;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  letter-spacing: 0.01em;
+  transition: opacity 0.15s, transform 0.1s;
+}
+.settingsBtn:hover { opacity: 0.88; transform: translateY(-1px); }
+.settingsBtn:active { transform: translateY(0); }
+
+.docTitle {
+  font-size: 0.875rem;
+  max-width: 60%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.readingStats {
+  font-size: 0.8rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 55%;
+}
+
+/* Text column sits above the band */
+.column {
+  max-width: 680px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 4rem 2rem 6rem;
+  flex: 1;
+  position: relative;
+  z-index: 2;
+}
+
+.sentence {
+  display: inline;
+  transition: opacity 0.18s ease;
+  line-height: inherit;
+}
+
+.hint {
+  text-align: center;
+  font-size: 0.78rem;
+  padding: 1rem;
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  backdrop-filter: blur(8px);
+  background: inherit;
+}
+
+/* ── Top-bar right cluster ── */
+.topBarRight {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.helpBtn {
+  background: none;
+  border: 1.5px solid;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 700;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.15s, transform 0.1s;
+  flex-shrink: 0;
+}
+.helpBtn:hover { opacity: 0.75; transform: translateY(-1px); }
+.helpBtn:active { transform: translateY(0); }
+
+/* ── Help modal ── */
+.helpBackdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  backdrop-filter: blur(3px);
+}
+
+.helpModal {
+  width: 100%;
+  max-width: 520px;
+  max-height: 80vh;
+  border: 1px solid;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+}
+
+.helpHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem 1rem;
+  border-bottom: 1px solid rgba(128, 128, 128, 0.18);
+  flex-shrink: 0;
+}
+
+.helpTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.helpClose {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  opacity: 0.55;
+  transition: opacity 0.15s;
+}
+.helpClose:hover { opacity: 1; }
+
+.helpBody {
+  overflow-y: auto;
+  padding: 1.25rem 1.5rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.helpSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.helpSectionTitle {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin: 0 0 0.35rem;
+}
+
+.helpList {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.25rem 1rem;
+  margin: 0;
+}
+
+.helpKey {
+  font-size: 0.875rem;
+  font-weight: 600;
+  white-space: nowrap;
+  padding: 0.15rem 0;
+}
+
+.helpVal {
+  font-size: 0.875rem;
+  line-height: 1.5;
+  margin: 0;
+  padding: 0.15rem 0;
+}
