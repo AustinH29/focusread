@@ -3,6 +3,7 @@ import { applyBionic } from '../../utils/bionic.js';
 import styles from './Reader.module.css';
 
 const TARGET_SCREEN_RATIO = 0.35;
+const BAND_SIZE_MAP = { '1': 1, '2': 2, '3': 3, '5': 5 };
 
 const HELP_SECTIONS = [
   {
@@ -11,6 +12,7 @@ const HELP_SECTIONS = [
       ['Space or ↓', 'Advance the focus band down'],
       ['↑', 'Move the focus band up'],
       ['Click any word', 'Jump the band to that line'],
+      ['1 / 2 / 3 / 5', 'Set focus band size instantly'],
       ['Esc', 'Return to the home screen'],
     ],
   },
@@ -51,7 +53,7 @@ const HELP_SECTIONS = [
   },
 ];
 
-export function Reader({ sentences, title, settings, theme, jumpTo, onClose, onOpenSettings }) {
+export function Reader({ sentences, title, settings, theme, jumpTo, onClose, onOpenSettings, onUpdateSettings, onPositionChange, initialDocY }) {
   const sentenceRefs = useRef([]);
   const contentTopRef = useRef(null);
   const contentBottomRef = useRef(null);
@@ -67,9 +69,10 @@ export function Reader({ sentences, title, settings, theme, jumpTo, onClose, onO
   const bandHeight = Math.round(settings.bandSize * lineHeightPx);
   const bandTop = Math.round(readingDocY - scrollY);
 
-  const readProgress = contentDocBottom <= contentDocTop ? 0 :
+  const maxReadingDocY = contentDocBottom - lineHeightPx;
+  const readProgress = maxReadingDocY <= contentDocTop ? 0 :
     Math.max(0, Math.min(100,
-      ((readingDocY - contentDocTop) / (contentDocBottom - contentDocTop)) * 100
+      ((readingDocY - contentDocTop) / (maxReadingDocY - contentDocTop)) * 100
     ));
 
   useEffect(() => {
@@ -81,21 +84,38 @@ export function Reader({ sentences, title, settings, theme, jumpTo, onClose, onO
   useEffect(() => {
     if (!contentTopRef.current || !contentBottomRef.current || !sentences.length) return;
     const t = setTimeout(() => {
-      window.scrollTo(0, 0);
       const topRect = contentTopRef.current.getBoundingClientRect();
       const bottomRect = contentBottomRef.current.getBoundingClientRect();
-      setContentDocTop(topRect.top);
-      setContentDocBottom(bottomRect.top);
-      setReadingDocY(topRect.top);
-      setScrollY(0);
+      const docTop = topRect.top;
+      const docBottom = bottomRect.top;
+      setContentDocTop(docTop);
+      setContentDocBottom(docBottom);
+      if (initialDocY != null && initialDocY > docTop) {
+        const maxY = docBottom - settings.fontSize * settings.lineHeight;
+        const clamped = Math.min(maxY, Math.max(docTop, initialDocY));
+        setReadingDocY(clamped);
+        const target = Math.max(0, clamped - window.innerHeight * TARGET_SCREEN_RATIO);
+        window.scrollTo(0, target);
+        setScrollY(window.scrollY);
+      } else {
+        window.scrollTo(0, 0);
+        setReadingDocY(docTop);
+        setScrollY(0);
+      }
     }, 80);
     return () => clearTimeout(t);
-  }, [sentences]);
+  }, [sentences, initialDocY]);
+
+  useEffect(() => {
+    if (!onPositionChange) return;
+    const id = setTimeout(() => onPositionChange(readingDocY), 800);
+    return () => clearTimeout(id);
+  }, [readingDocY, onPositionChange]);
 
   const scrollToDocY = useCallback((docY) => {
     const target = Math.max(0, docY - window.innerHeight * TARGET_SCREEN_RATIO);
     window.scrollTo(0, target);
-    setScrollY(target);
+    setScrollY(window.scrollY); // read actual scroll — may be clamped at page bottom
   }, []);
 
   const handleKey = useCallback((e) => {
@@ -105,9 +125,14 @@ export function Reader({ sentences, title, settings, theme, jumpTo, onClose, onO
       return;
     }
     if (showHelp) return;
+    if (e.key in BAND_SIZE_MAP) {
+      e.preventDefault();
+      onUpdateSettings?.({ bandSize: BAND_SIZE_MAP[e.key] });
+      return;
+    }
     if (e.key === ' ' || e.key === 'ArrowDown') {
       e.preventDefault();
-      const next = readingDocY + settings.bandSize * lineHeightPx;
+      const next = Math.min(maxReadingDocY, readingDocY + settings.bandSize * lineHeightPx);
       setReadingDocY(next);
       scrollToDocY(next);
     }
@@ -117,22 +142,28 @@ export function Reader({ sentences, title, settings, theme, jumpTo, onClose, onO
       setReadingDocY(next);
       scrollToDocY(next);
     }
-  }, [readingDocY, contentDocTop, settings.bandSize, lineHeightPx, onClose, scrollToDocY, showHelp]);
+  }, [readingDocY, contentDocTop, contentDocBottom, settings.bandSize, lineHeightPx, onClose, onUpdateSettings, scrollToDocY, showHelp]);
 
   useEffect(() => {
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
   }, [handleKey]);
 
+  const snapToLine = useCallback((docY) => {
+    const lineIndex = Math.round((docY - contentDocTop) / lineHeightPx);
+    return contentDocTop + Math.max(0, lineIndex) * lineHeightPx;
+  }, [contentDocTop, lineHeightPx]);
+
   const handleWheel = useCallback((e) => {
     e.preventDefault();
     let delta = e.deltaY;
     if (e.deltaMode === 1) delta *= lineHeightPx;
     if (e.deltaMode === 2) delta *= window.innerHeight;
-    const next = Math.max(contentDocTop, readingDocY + delta);
+    const raw = Math.min(maxReadingDocY, Math.max(contentDocTop, readingDocY + delta));
+    const next = snapToLine(raw);
     setReadingDocY(next);
     scrollToDocY(next);
-  }, [readingDocY, contentDocTop, lineHeightPx, scrollToDocY]);
+  }, [readingDocY, contentDocTop, contentDocBottom, lineHeightPx, scrollToDocY, snapToLine]);
 
   useEffect(() => {
     window.addEventListener('wheel', handleWheel, { passive: false });
@@ -144,11 +175,12 @@ export function Reader({ sentences, title, settings, theme, jumpTo, onClose, onO
     if (!el) return;
     const rects = el.getClientRects();
     if (!rects.length) return;
-    const docY = rects[0].top + window.scrollY;
+    const rawDocY = rects[0].top + window.scrollY;
+    const docY = snapToLine(rawDocY);
     setReadingDocY(docY);
     scrollToDocY(docY);
     jumpTo(i);
-  }, [scrollToDocY, jumpTo]);
+  }, [scrollToDocY, jumpTo, snapToLine]);
 
   function renderSentence(sentence) {
     if (settings.bionic) {
