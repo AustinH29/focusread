@@ -171,6 +171,70 @@
   text-align: center;
 }
 
+.resumeCard {
+  width: 100%;
+  max-width: 520px;
+  margin: 0 0 1.25rem;
+  padding: 1rem 1.25rem;
+  border: 1.5px solid;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.resumeInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.resumeTitle {
+  font-size: 0.95rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 260px;
+}
+
+.resumeLabel {
+  font-size: 0.8rem;
+}
+
+.resumeActions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.resumeBtn {
+  border: none;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 700;
+  padding: 0.45rem 0.9rem;
+  border-radius: 8px;
+  color: #fff;
+  transition: opacity 0.15s;
+}
+.resumeBtn:hover { opacity: 0.85; }
+
+.resumeDismiss {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  opacity: 0.45;
+  padding: 0.25rem 0.4rem;
+  border-radius: 6px;
+  transition: opacity 0.15s;
+}
+.resumeDismiss:hover { opacity: 0.8; }
+
 @media (max-width: 560px) {
   .title { font-size: 2rem; }
 }

@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import styles from './InputScreen.module.css';
 
-export function InputScreen({ onLoad, theme }) {
+export function InputScreen({ onLoad, theme, savedSession, onResume, onDismissResume }) {
   const [tab, setTab] = useState('paste');
   const [text, setText] = useState('');
   const [url, setUrl] = useState('');
@@ -107,6 +107,37 @@ export function InputScreen({ onLoad, theme }) {
           A distraction-free reading environment built for ADHD brains.
         </p>
       </div>
+
+      {savedSession && (
+        <div className={styles.resumeCard} style={{ background: theme.panel, borderColor: theme.accent }}>
+          <div className={styles.resumeInfo}>
+            {savedSession.title && (
+              <span className={styles.resumeTitle} style={{ color: theme.text }}>
+                {savedSession.title}
+              </span>
+            )}
+            <span className={styles.resumeLabel} style={{ color: theme.dim }}>
+              Continue where you left off
+            </span>
+          </div>
+          <div className={styles.resumeActions}>
+            <button
+              className={styles.resumeBtn}
+              style={{ background: theme.accent }}
+              onClick={onResume}
+            >
+              Resume →
+            </button>
+            <button
+              className={styles.resumeDismiss}
+              style={{ color: theme.dim }}
+              onClick={onDismissResume}
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className={styles.card} style={{ background: theme.panel, borderColor: theme.border }}>
         <div className={styles.tabs} style={{ borderBottomColor: theme.border }}>
