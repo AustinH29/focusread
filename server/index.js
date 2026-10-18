@@ -65,7 +65,12 @@ app.post('/fetch-url', async (req, res) => {
     const article = reader.parse();
 
     if (!article) {
-      return res.status(422).json({ error: 'Could not extract readable content from this URL' });
+      const rawText = dom.window.document.body?.textContent || '';
+      const cleaned = rawText.replace(/\s+/g, ' ').trim();
+      if (cleaned.length > 200) {
+        return res.json({ title: dom.window.document.title || '', byline: '', content: cleaned });
+      }
+      return res.status(422).json({ error: 'Could not extract readable content from this URL. Try pasting the text directly.' });
     }
 
     return res.json({
